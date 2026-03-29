@@ -1,0 +1,138 @@
+-- [[ IANKIZINX HUB V34.0 - THE FINAL HYBRID ]] --
+local Player = game.Players.LocalPlayer
+local UIS = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local Camera = workspace.CurrentCamera
+
+-- CONFIGS
+local Configs = { 
+    Slap = false, Speed = false, InfJump = false, 
+    ESP_Lines = false, ESP_Skeleton = false, ESP_Names = false,
+    AntiRagdoll = true, ValueSpeed = 60, SlapPower = false, PowerValue = 35,
+    AntiAFK = true, InfHealth = false
+}
+
+-- INTERFACE (ESTILO 67 HUB)
+local ScreenGui = Instance.new("ScreenGui", Player.PlayerGui); ScreenGui.Name = "IankizinX_V34"; ScreenGui.ResetOnSpawn = false
+local Main = Instance.new("Frame", ScreenGui); Main.Size = UDim2.new(0, 560, 0, 380); Main.Position = UDim2.new(0.5, -280, 0.5, -190); Main.BackgroundColor3 = Color3.fromRGB(10, 14, 25); Main.BorderSizePixel = 0
+local Corner = Instance.new("UICorner", Main); Corner.CornerRadius = UDim.new(0, 10)
+local Stroke = Instance.new("UIStroke", Main); Stroke.Color = Color3.fromRGB(30, 65, 200); Stroke.Thickness = 2
+
+-- TOP BAR (CONTROLES)
+local TopBar = Instance.new("Frame", Main); TopBar.Size = UDim2.new(1, 0, 0, 50); TopBar.BackgroundTransparency = 1
+local Title = Instance.new("TextLabel", TopBar); Title.Position = UDim2.new(0, 15, 0, 0); Title.Size = UDim2.new(0, 200, 1, 0); Title.Text = "67 HUB • IAN KIZINX"; Title.TextColor3 = Color3.new(1,1,1); Title.Font = Enum.Font.GothamBold; Title.TextSize = 16; Title.TextXAlignment = Enum.TextXAlignment.Left; Title.BackgroundTransparency = 1
+
+-- Botões de Fechar e Minimizar
+local CloseBtn = Instance.new("TextButton", TopBar); CloseBtn.Size = UDim2.new(0, 30, 0, 30); CloseBtn.Position = UDim2.new(1, -40, 0.5, -15); CloseBtn.Text = "X"; CloseBtn.BackgroundColor3 = Color3.fromRGB(200, 0, 0); CloseBtn.TextColor3 = Color3.new(1,1,1); Instance.new("UICorner", CloseBtn)
+local MiniBtn = Instance.new("TextButton", TopBar); MiniBtn.Size = UDim2.new(0, 30, 0, 30); MiniBtn.Position = UDim2.new(1, -75, 0.5, -15); MiniBtn.Text = "-"; MiniBtn.BackgroundColor3 = Color3.fromRGB(30, 35, 60); MiniBtn.TextColor3 = Color3.new(1,1,1); Instance.new("UICorner", MiniBtn)
+
+-- SIDEBAR & PAGES
+local Sidebar = Instance.new("Frame", Main); Sidebar.Size = UDim2.new(0, 140, 1, -70); Sidebar.Position = UDim2.new(0, 10, 0, 60); Sidebar.BackgroundColor3 = Color3.fromRGB(15, 22, 40); Instance.new("UICorner", Sidebar)
+Instance.new("UIListLayout", Sidebar).Padding = UDim.new(0, 5)
+local PageContainer = Instance.new("Frame", Main); PageContainer.Size = UDim2.new(1, -175, 1, -75); PageContainer.Position = UDim2.new(0, 160, 0, 65); PageContainer.BackgroundTransparency = 1
+local Containers = {}
+
+local function CreateTab(name, icon)
+    local btn = Instance.new("TextButton", Sidebar); btn.Size = UDim2.new(0.9, 0, 0, 38); btn.Text = icon.."  "..name; btn.BackgroundColor3 = Color3.fromRGB(25, 40, 80); btn.TextColor3 = Color3.new(0.9,0.9,0.9); btn.Font = Enum.Font.GothamSemibold; btn.TextSize = 13; Instance.new("UICorner", btn)
+    local p = Instance.new("ScrollingFrame", PageContainer); p.Size = UDim2.new(1, 0, 1, 0); p.BackgroundTransparency = 1; p.Visible = false; p.ScrollBarThickness = 2; p.CanvasSize = UDim2.new(0,0,1.5,0)
+    Instance.new("UIListLayout", p).Padding = UDim.new(0, 8)
+    btn.MouseButton1Click:Connect(function() for _, v in pairs(Containers) do v.Visible = false end p.Visible = true end)
+    Containers[name] = p; return p
+end
+
+-- COMPONENTE SLIDER HÍBRIDO (DESLIZA + DIGITA)
+local function AddSlider(p, txt, key, min, max, def)
+    local f = Instance.new("Frame", p); f.Size = UDim2.new(0.95, 0, 0, 65); f.BackgroundColor3 = Color3.fromRGB(20, 28, 55); Instance.new("UICorner", f)
+    local l = Instance.new("TextLabel", f); l.Size = UDim2.new(1, 0, 0, 25); l.Position = UDim2.new(0, 12, 0, 5); l.Text = txt; l.TextColor3 = Color3.new(0.9,0.9,0.9); l.Font = Enum.Font.Gotham; l.TextXAlignment = Enum.TextXAlignment.Left; l.BackgroundTransparency = 1
+    
+    local sbg = Instance.new("TextButton", f); sbg.Size = UDim2.new(0.7, 0, 0, 6); sbg.Position = UDim2.new(0.05, 0, 0, 45); sbg.BackgroundColor3 = Color3.fromRGB(40, 45, 70); sbg.Text = ""; Instance.new("UICorner", sbg)
+    local fill = Instance.new("Frame", sbg); fill.Size = UDim2.new((def-min)/(max-min), 0, 1, 0); fill.BackgroundColor3 = Color3.fromRGB(40, 100, 255); Instance.new("UICorner", fill)
+    local box = Instance.new("TextBox", f); box.Size = UDim2.new(0, 50, 0, 25); box.Position = UDim2.new(1, -65, 0, 35); box.Text = tostring(def); box.BackgroundColor3 = Color3.fromRGB(30, 35, 60); box.TextColor3 = Color3.new(1,1,1); box.Font = Enum.Font.Gotham; Instance.new("UICorner", box)
+
+    local function update(input)
+        local pos = math.clamp((input.Position.X - sbg.AbsolutePosition.X) / sbg.AbsoluteSize.X, 0, 1)
+        local val = math.floor(min + (max - min) * pos)
+        Configs[key] = val
+        box.Text = tostring(val)
+        fill.Size = UDim2.new(pos, 0, 1, 0)
+    end
+
+    sbg.InputBegan:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseButton1 then update(input) local move; move = UIS.InputChanged:Connect(function(i) if i.UserInputType == Enum.UserInputType.MouseMovement then update(i) end end) UIS.InputEnded:Connect(function(i) if i.UserInputType == Enum.UserInputType.MouseButton1 then move:Disconnect() end end) end end)
+    
+    box.FocusLost:Connect(function() 
+        local v = tonumber(box.Text) or min
+        v = math.clamp(v, min, max)
+        Configs[key] = v
+        box.Text = tostring(v)
+        fill:TweenSize(UDim2.new((v-min)/(max-min), 0, 1, 0), "Out", "Quad", 0.2, true)
+    end)
+end
+
+-- COMPONENTE TOGGLE
+local function AddToggle(p, txt, key)
+    local f = Instance.new("Frame", p); f.Size = UDim2.new(0.95, 0, 0, 42); f.BackgroundColor3 = Color3.fromRGB(20, 28, 55); Instance.new("UICorner", f)
+    local l = Instance.new("TextLabel", f); l.Size = UDim2.new(0.7, 0, 1, 0); l.Position = UDim2.new(0, 12, 0, 0); l.Text = txt; l.TextColor3 = Color3.new(0.9,0.9,0.9); l.Font = Enum.Font.Gotham; l.TextXAlignment = Enum.TextXAlignment.Left; l.BackgroundTransparency = 1
+    local btn = Instance.new("TextButton", f); btn.Size = UDim2.new(0, 42, 0, 22); btn.Position = UDim2.new(1, -52, 0.5, -11); btn.Text = ""; btn.BackgroundColor3 = Configs[key] and Color3.fromRGB(40, 100, 255) or Color3.fromRGB(60, 65, 80); Instance.new("UICorner", btn).CornerRadius = UDim.new(1, 0)
+    local c = Instance.new("Frame", btn); c.Size = UDim2.new(0, 18, 0, 18); c.Position = Configs[key] and UDim2.new(1, -20, 0.5, -9) or UDim2.new(0, 2, 0.5, -9); c.BackgroundColor3 = Color3.new(1,1,1); Instance.new("UICorner", c).CornerRadius = UDim.new(1, 0)
+    btn.MouseButton1Click:Connect(function() Configs[key] = not Configs[key] btn.BackgroundColor3 = Configs[key] and Color3.fromRGB(40, 100, 255) or Color3.fromRGB(60, 65, 80) c:TweenPosition(Configs[key] and UDim2.new(1, -20, 0.5, -9) or UDim2.new(0, 2, 0.5, -9), "Out", "Quad", 0.2, true) end)
+end
+
+-- CRIAÇÃO DAS ABAS
+local T1 = CreateTab("Main", "🏠"); local T2 = CreateTab("Movement", "🏃"); local T3 = CreateTab("ESP", "👁️")
+AddToggle(T1, "King Mode (Anti-Tapa)", "AntiRagdoll"); AddToggle(T1, "Tapa Automático", "Slap"); AddToggle(T1, "Anti-AFK", "AntiAFK"); AddSlider(T1, "Super Força", "PowerValue", 1, 100, 35)
+AddToggle(T2, "Ativar Velocidade", "Speed"); AddSlider(T2, "Valor Speed", "ValueSpeed", 16, 300, 60); AddToggle(T2, "Pulo Infinito", "InfJump")
+AddToggle(T3, "Esqueleto TITAN", "ESP_Skeleton"); AddToggle(T3, "Nomes", "ESP_Names"); AddToggle(T3, "Linhas", "ESP_Lines")
+
+-- LÓGICA DE JOGO
+RunService.Stepped:Connect(function()
+    pcall(function()
+        local char = Player.Character; local hum = char.Humanoid; local hrp = char.HumanoidRootPart
+        if Configs.AntiRagdoll and (hum:GetState() == Enum.HumanoidStateType.Physics or hum:GetState() == Enum.HumanoidStateType.Ragdoll) then
+            hum:ChangeState(Enum.HumanoidStateType.GettingUp); hrp.Velocity = Vector3.zero; hrp.RotVelocity = Vector3.zero
+        end
+        if Configs.Slap and char:FindFirstChildOfClass("Tool") then
+            for _, v in pairs(game.Players:GetPlayers()) do
+                if v ~= Player and v.Character and (hrp.Position - v.Character.HumanoidRootPart.Position).Magnitude < 18 then
+                    char:FindFirstChildOfClass("Tool"):Activate()
+                    local ev = game:GetService("ReplicatedStorage"):FindFirstChild("SlapEvent", true) or game:GetService("ReplicatedStorage"):FindFirstChild("Events", true):FindFirstChild("Slap")
+                    ev:FireServer(v.Character.HumanoidRootPart)
+                    if Configs.SlapPower then for i=1, Configs.PowerValue do ev:FireServer(v.Character.HumanoidRootPart) end end
+                end
+            end
+        end
+        hum.WalkSpeed = Configs.Speed and Configs.ValueSpeed or 16
+    end)
+end)
+
+-- SISTEMA DE MINIMIZAR ESTILO 67
+local OpenBtn = Instance.new("TextButton", ScreenGui); OpenBtn.Size = UDim2.new(0, 50, 0, 50); OpenBtn.Position = UDim2.new(0, 20, 0.5, -25); OpenBtn.Text = "67"; OpenBtn.BackgroundColor3 = Color3.fromRGB(10, 14, 25); OpenBtn.TextColor3 = Color3.new(1,1,1); OpenBtn.Font = Enum.Font.GothamBold; OpenBtn.Visible = false; Instance.new("UICorner", OpenBtn); local Os = Instance.new("UIStroke", OpenBtn); Os.Color = Color3.fromRGB(30, 65, 200); Os.Thickness = 2
+MiniBtn.MouseButton1Click:Connect(function() Main.Visible = false; OpenBtn.Visible = true end); OpenBtn.MouseButton1Click:Connect(function() Main.Visible = true; OpenBtn.Visible = false end); CloseBtn.MouseButton1Click:Connect(function() ScreenGui:Destroy() end)
+
+-- DRAG SYSTEM
+local Dragging, DragStart, StartPos; Main.InputBegan:Connect(function(i) if i.UserInputType == Enum.UserInputType.MouseButton1 then Dragging = true; DragStart = i.Position; StartPos = Main.Position end end)
+UIS.InputChanged:Connect(function(i) if Dragging and i.UserInputType == Enum.UserInputType.MouseMovement then local delta = i.Position - DragStart; Main.Position = UDim2.new(StartPos.X.Scale, StartPos.X.Offset + delta.X, StartPos.Y.Scale, StartPos.Y.Offset + delta.Y) end end)
+UIS.InputEnded:Connect(function(i) if i.UserInputType == Enum.UserInputType.MouseButton1 then Dragging = false end end)
+
+-- ESP CODE (SKELETON FIX)
+local function CreateESP(p)
+    local Line = Drawing.new("Line"); Line.Visible = false; Line.Thickness = 1.5; local Text = Drawing.new("Text"); Text.Visible = false; Text.Size = 14; Text.Center = true; Text.Outline = true
+    local Bones = {H=Drawing.new("Line"), LA=Drawing.new("Line"), RA=Drawing.new("Line"), LL=Drawing.new("Line"), RL=Drawing.new("Line")}
+    for _,b in pairs(Bones) do b.Thickness = 3.5; b.Visible = false end
+    RunService.RenderStepped:Connect(function()
+        if p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+            local c = p.Character; local pos, vis = Camera:WorldToViewportPoint(c.HumanoidRootPart.Position); local col = Stroke.Color
+            if vis then
+                if Configs.ESP_Names then Text.Text = p.Name; Text.Position = Vector2.new(pos.X, pos.Y - 45); Text.Visible = true; Text.Color = col else Text.Visible = false end
+                if Configs.ESP_Lines then Line.From = Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y); Line.To = Vector2.new(pos.X, pos.Y); Line.Visible = true; Line.Color = col else Line.Visible = false end
+                if Configs.ESP_Skeleton then
+                    local function DB(l, p1, p2) local part1 = c:FindFirstChild(p1); local part2 = c:FindFirstChild(p2) if part1 and part2 then local v1, s1 = Camera:WorldToViewportPoint(part1.Position); local v2, s2 = Camera:WorldToViewportPoint(part2.Position) if s1 and s2 then l.From = Vector2.new(v1.X, v1.Y); l.To = Vector2.new(v2.X, v2.Y); l.Visible = true; l.Color = col else l.Visible = false end else l.Visible = false end end
+                    DB(Bones.H, "Head", "HumanoidRootPart"); DB(Bones.LA, "HumanoidRootPart", c:FindFirstChild("Left Arm") and "Left Arm" or "LeftUpperArm"); DB(Bones.RA, "HumanoidRootPart", c:FindFirstChild("Right Arm") and "Right Arm" or "RightUpperArm"); DB(Bones.LL, "HumanoidRootPart", c:FindFirstChild("Left Leg") and "Left Leg" or "LeftLowerLeg"); DB(Bones.RL, "HumanoidRootPart", c:FindFirstChild("Right Leg") and "Right Leg" or "RightLowerLeg")
+                else for _,b in pairs(Bones) do b.Visible = false end end
+            else Line.Visible = false; Text.Visible = false; for _,b in pairs(Bones) do b.Visible = false end end
+        else Line.Visible = false; Text.Visible = false; for _,b in pairs(Bones) do b.Visible = false end end
+    end)
+end
+for _,v in pairs(game.Players:GetPlayers()) do if v ~= Player then CreateESP(v) end end
+game.Players.PlayerAdded:Connect(CreateESP)
+UIS.JumpRequest:Connect(function() if Configs.InfJump then Player.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping) end end)
+Containers["Main"].Visible = true
